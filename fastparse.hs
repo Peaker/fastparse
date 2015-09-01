@@ -57,6 +57,19 @@ instance Alternative Parser where
         | allowsEmpty v = error "many/some used on parser that accepts empty"
         | otherwise = some v <|> pure []
 
+-- λ> putStrLn $ groom $ string "a" <|> string "ab"
+-- Parser{_parserCurrentResult = Nothing,
+--        _parserHandlers =
+--          fromList
+--            [(97,
+--              Parser{_parserCurrentResult = Just "a",
+--                     _parserHandlers =
+--                       fromList
+--                         [(98,
+--                           Parser{_parserCurrentResult = Just "ab",
+--                                  _parserHandlers = fromList []})]})]}
+
+
 nextChar :: State ByteString (Maybe Char)
 nextChar = state $ \bs -> case BS8.uncons bs of
     Nothing -> (Nothing, bs)
