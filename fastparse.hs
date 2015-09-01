@@ -24,6 +24,9 @@ data Parser a = Parser
     } deriving (Show, Functor)
 Lens.makeLenses ''Parser
 
+allowsEmpty :: Parser a -> Bool
+allowsEmpty = Lens.has (parserCurrentResult . Lens._Just)
+
 char :: Char -> Parser Char
 char c = empty & parserHandlers %~ IM.insert (ord c) (pure c)
 
@@ -49,6 +52,10 @@ instance Alternative Parser where
                 (Nothing, Just x) -> Just x
                 (Just x, Nothing) -> Just x
                 (Just _, Just _) -> error "Ambiguous parser!"
+    some v = (:) <$> v <*> many v
+    many v
+        | allowsEmpty v = error "many/some used on parser that accepts empty"
+        | otherwise = some v <|> pure []
 
 nextChar :: State ByteString (Maybe Char)
 nextChar = state $ \bs -> case BS8.uncons bs of
